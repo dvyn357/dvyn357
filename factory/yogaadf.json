@@ -1,0 +1,9 @@
+{
+	"name": "yogaadf",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "48890289-4b16-4828-95cf-9e7241b3ad3a",
+		"tenantId": "bbefb47a-be66-49f5-892a-52c741c392de"
+	}
+}

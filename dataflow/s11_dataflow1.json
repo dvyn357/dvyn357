@@ -1,0 +1,98 @@
+{
+	"name": "s11_dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Customer_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sourcedatafromCustomertable"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AddressADLS_Op",
+						"type": "DatasetReference"
+					},
+					"name": "savedatatoADLS",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureBlobStorageYoga1",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectivecolumns"
+				},
+				{
+					"name": "filterTitleWithMr"
+				},
+				{
+					"name": "derivedColCreateNewCol"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "sortOrorderBy"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> sourcedatafromCustomertable",
+				"sourcedatafromCustomertable select(mapColumn(",
+				"          CustomerID,",
+				"          NameStyle,",
+				"          Title,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName,",
+				"          CompanyName,",
+				"          EmailAddress,",
+				"          Phone,",
+				"          rowguid,",
+				"          ModifiedDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectivecolumns",
+				"selectivecolumns filter(Title=='Mr.') ~> filterTitleWithMr",
+				"filterTitleWithMr derive(Nationality = iif(like(Phone ,'+91%'), 'Indian','NonIndian')) ~> derivedColCreateNewCol",
+				"derivedColCreateNewCol aggregate(groupBy(CompanyName),",
+				"     NationalityCount = count(Nationality)) ~> aggregate1",
+				"aggregate1 sort(desc(CompanyName, true),",
+				"     caseInsensitive: true) ~> sortOrorderBy",
+				"sortOrorderBy sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> savedatatoADLS"
+			]
+		}
+	}
+}
