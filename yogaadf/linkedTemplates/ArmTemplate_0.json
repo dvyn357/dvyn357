@@ -655,6 +655,79 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/jsonadlsDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "output1",
+						"fileSystem": "landing"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"CustomerID": {
+							"type": "integer"
+						},
+						"NameStyle": {
+							"type": "boolean"
+						},
+						"Title": {
+							"type": "string"
+						},
+						"FirstName": {
+							"type": "string"
+						},
+						"MiddleName": {
+							"type": "string"
+						},
+						"LastName": {
+							"type": "string"
+						},
+						"Suffix": {
+							"type": "string"
+						},
+						"CompanyName": {
+							"type": "string"
+						},
+						"SalesPerson": {
+							"type": "string"
+						},
+						"EmailAddress": {
+							"type": "string"
+						},
+						"Phone": {
+							"type": "string"
+						},
+						"PasswordHash": {
+							"type": "string"
+						},
+						"PasswordSalt": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Ingestion_Customer_JOIN_ADLS')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -723,165 +796,6 @@
 				},
 				"annotations": [],
 				"lastPublishTime": "2024-04-19T13:04:41Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSqlGenericDS')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetSample')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/S9_variableExample')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@pipeline().parameters.tblList",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Set variable1",
-									"type": "SetVariable",
-									"dependsOn": [
-										{
-											"activity": "Copy data1",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "finalCount",
-										"value": {
-											"value": "@add(variables('tblCount'),1)",
-											"type": "Expression"
-										}
-									}
-								},
-								{
-									"name": "Set variable2",
-									"type": "SetVariable",
-									"dependsOn": [
-										{
-											"activity": "Set variable1",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "tblCount",
-										"value": {
-											"value": "@variables('finalCount')",
-											"type": "Expression"
-										}
-									}
-								},
-								{
-									"name": "Copy data1",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "AzureSqlSource",
-											"queryTimeout": "02:00:00",
-											"partitionOption": "None"
-										},
-										"sink": {
-											"type": "ParquetSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											},
-											"formatSettings": {
-												"type": "ParquetWriteSettings"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "AzureSqlGenericDS",
-											"type": "DatasetReference",
-											"parameters": {
-												"schemaName": "saleslt",
-												"tableName": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"uname": "azurelib"
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "ParquetSample",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"tblList": {
-						"type": "array",
-						"defaultValue": [
-							"Product",
-							"Customer",
-							"Address"
-						]
-					}
-				},
-				"variables": {
-					"tblCount": {
-						"type": "Integer",
-						"defaultValue": 0
-					},
-					"finalCount": {
-						"type": "Integer",
-						"defaultValue": 0
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2024-04-23T04:15:10Z"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlGenericDS')]",
