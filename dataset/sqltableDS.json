@@ -1,0 +1,16 @@
+{
+	"name": "sqltableDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSql1_LS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "saleslt",
+			"table": "customerEven"
+		}
+	}
+}
