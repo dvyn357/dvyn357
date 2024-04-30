@@ -1,0 +1,27 @@
+{
+	"name": "AzureSqlTable_HWM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSql1_LS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "table_name",
+				"type": "varchar"
+			},
+			{
+				"name": "lastruntime",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "hwm"
+		}
+	}
+}
