@@ -18,77 +18,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/jsonadlsDS')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "output1",
-						"fileSystem": "landing"
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"CustomerID": {
-							"type": "integer"
-						},
-						"NameStyle": {
-							"type": "boolean"
-						},
-						"Title": {
-							"type": "string"
-						},
-						"FirstName": {
-							"type": "string"
-						},
-						"MiddleName": {
-							"type": "string"
-						},
-						"LastName": {
-							"type": "string"
-						},
-						"Suffix": {
-							"type": "string"
-						},
-						"CompanyName": {
-							"type": "string"
-						},
-						"SalesPerson": {
-							"type": "string"
-						},
-						"EmailAddress": {
-							"type": "string"
-						},
-						"Phone": {
-							"type": "string"
-						},
-						"PasswordHash": {
-							"type": "string"
-						},
-						"PasswordSalt": {
-							"type": "string"
-						},
-						"rowguid": {
-							"type": "string"
-						},
-						"ModifiedDate": {
-							"type": "string"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDb_AKV')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -564,9 +493,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/jsonadlsDS')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/assign5_5subpipeline')]",
@@ -1060,6 +987,82 @@
 								"parameters": {}
 							}
 						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/assign6_5')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@createArray('select * from saleslt.customer where customerid>10','select * from saleslt.product where productid>10 and productid<1000')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@item()",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "Address_DS",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "JsonOpADLSCustomer",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								}
+							]
+						}
 					}
 				],
 				"policy": {
