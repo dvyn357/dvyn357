@@ -1,0 +1,35 @@
+{
+	"name": "AzureSqlTable_scd",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSql1_LS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "region",
+				"type": "varchar"
+			},
+			{
+				"name": "activeflag",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "scdExample"
+		}
+	}
+}

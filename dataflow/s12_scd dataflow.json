@@ -1,0 +1,155 @@
+{
+	"name": "s12_scd dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Address_DS",
+						"type": "DatasetReference"
+					},
+					"name": "fetchScdTableData",
+					"description": "Import data from scdExample table"
+				},
+				{
+					"dataset": {
+						"referenceName": "scd_ds",
+						"type": "DatasetReference"
+					},
+					"name": "csvdata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable_scd",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable_scd",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectidActiveflag"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "AlterRow2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          name as string,",
+				"          region as string,",
+				"          activeflag as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select * from dbo.scdexample',",
+				"     format: 'query') ~> fetchScdTableData",
+				"source(output(",
+				"          id as integer,",
+				"          name as string,",
+				"          region as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> csvdata",
+				"fetchScdTableData select(mapColumn(",
+				"          DBid = id,",
+				"          DBactiveflag = activeflag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectidActiveflag",
+				"csvdata, selectidActiveflag lookup(id == DBid,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"filter1 derive(DBactiveflag = 0) ~> derivedColumn1",
+				"lookup1 filter(!isNull(DBid)) ~> filter1",
+				"derivedColumn1 select(mapColumn(",
+				"          id = DBid,",
+				"          DBactiveflag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 alterRow(upsertIf(1==1)) ~> AlterRow1",
+				"csvdata derive(activeFlag = 1) ~> derivedColumn2",
+				"derivedColumn2 alterRow(insertIf(1==1)) ~> AlterRow2",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as integer,",
+				"          name as string,",
+				"          region as string,",
+				"          activeflag as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['id'],",
+				"     skipKeyWrites:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          id,",
+				"          activeflag = DBactiveflag",
+				"     )) ~> sink1",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as integer,",
+				"          name as string,",
+				"          region as string,",
+				"          activeflag as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          id,",
+				"          name,",
+				"          region,",
+				"          activeflag = activeFlag",
+				"     )) ~> sink2"
+			]
+		}
+	}
+}
